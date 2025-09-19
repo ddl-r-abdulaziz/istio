@@ -34,7 +34,8 @@ sudo make build
 sudo make push 
 
 # == copy
-docker tag $HUB/pilot:$TAG quay.io/domino/istio-pilot:$TAG
-docker push quay.io/domino/istio-pilot:$TAG
+docker tag $HUB/pilot:$TAG quay.io/domino/operations-istio-pilot-docker:$TAG
+docker push quay.io/domino/operations-istio-pilot-docker:$TAG
+printf "Image: quay.io/domino/operations-istio-pilot-docker:$TAG\n"
 ```
 

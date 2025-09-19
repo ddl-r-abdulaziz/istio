@@ -16,6 +16,7 @@ package controller
 
 import (
 	"fmt"
+	"sigs.k8s.io/yaml"
 	"sort"
 	"sync"
 	"time"
@@ -578,7 +579,12 @@ func registerHandlers[T controllers.ComparableObject](c *Controller,
 	handler func(T, T, model.Event) error, filter FilterOutFunc[T],
 ) {
 	wrappedHandler := func(prev, curr T, event model.Event) error {
-		ll := log.WithLabels("evt.namespace", curr.GetNamespace(), "evt.name", curr.GetName(), "evt.type", otype)
+		ll := log.WithLabels(
+			"evt.namespace", curr.GetNamespace(),
+			"evt.name", curr.GetName(), "evt.type", otype,
+			"evt.rv", curr.GetResourceVersion(),
+		)
+
 		ll.Debugf("Event handler called")
 
 		curr = informer.Get(curr.GetName(), curr.GetNamespace())
@@ -590,6 +596,15 @@ func registerHandlers[T controllers.ComparableObject](c *Controller,
 			return nil
 		}
 		ll.Debugf("Event target found")
+
+		// Sorry for the spam!
+		y, yerr := yaml.Marshal(curr)
+		if yerr != nil {
+			ll.Debugf("Could not get yaml of object: %s", yerr)
+		} else {
+			ll.Debugf("Event resource: \n%s", string(y))
+		}
+		
 		return handler(prev, curr, event)
 	}
 	// Pre-build our metric types to avoid recompute them on each event
